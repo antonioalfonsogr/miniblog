@@ -46,4 +46,41 @@ router.delete("/:id", function (req, res, next) {
   });
 });
 
+// Comprueba si el usuario existe
+router.post("/signin", function (req, res, next) {
+  User.findOne({ username: req.body.username }, function (err, user) {
+    if (err) res.status(500).send("¡Error comprobando el usuario!");
+    // Si el usuario existe...
+    if (user != null) {
+      user.comparePassword(req.body.password, function (err, isMatch) {
+        if (err) return next(err);
+        // Si el password es correcto...
+        if (isMatch)
+          res
+            .status(200)
+            .send({ message: "ok", role: user.role, id: user._id });
+        else res.status(200).send({ message: "la password no coincide" });
+      });
+    } else res.status(401).send({ message: "usuario no registrado" });
+  });
+});
+
+//Opción1: crear un manejador de una ruta tipo /finduser (usamos el método findOne por username).
+
+router.post("/finduser", function (req, res, next) {
+  User.findOne({ username: req.body.username }, function (err, userinfo) {
+    if (err) res.status(500).send(err);
+    else res.status(200).json(userinfo);
+  });
+});
+
+//Crear un servicio para actualizar a todos los usuarios el “role” a “subscriber
+
+router.post("/subscriber", function (req, res, next) {
+  User.updateMany({}, { role: "subcriber" }, function (err, userinfo) {
+    if (err) res.status(500).send(err);
+    else res.sendStatus(200);
+  });
+});
+
 module.exports = router;
